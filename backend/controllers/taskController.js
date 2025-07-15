@@ -26,7 +26,8 @@ export const createTask = async (req, res) => {
 // Get all tasks
 export const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.findAll({ include: User });
+    const tasks = await Task.findAll({ include: { model: User, attributes: ["id", "name", "email"] }
+  });
     res.status(200).json(tasks);
   } catch (err) {
     res.status(500).json({ message: "Could not fetch tasks", error: err.message });
@@ -86,12 +87,20 @@ export const updateTask = async (req, res) => {
 // Delete task
 export const deleteTask = async (req, res) => {
   try {
+    console.log("🔍 Deleting task with ID:", req.params.id);
+
     const task = await Task.findByPk(req.params.id);
-    if (!task) return res.status(404).json({ message: "Task not found" });
+
+    if (!task) {
+      console.log("❌ Task not found");
+      return res.status(404).json({ message: "Task not found" });
+    }
 
     await task.destroy();
+    console.log("✅ Task deleted");
     res.status(200).json({ message: "Task deleted" });
   } catch (err) {
+    console.error("❌ Delete failed:", err.message);
     res.status(500).json({ message: "Delete failed", error: err.message });
   }
 };
